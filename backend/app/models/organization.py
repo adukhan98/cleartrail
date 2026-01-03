@@ -1,8 +1,9 @@
 """Organization model."""
 
+from datetime import date
 from uuid import UUID, uuid4
 
-from sqlalchemy import String
+from sqlalchemy import Boolean, Date, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,8 +24,11 @@ class Organization(Base, TimestampMixin):
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
     # Audit period settings
-    audit_period_start: Mapped[str | None] = mapped_column(String(10))  # YYYY-MM-DD
-    audit_period_end: Mapped[str | None] = mapped_column(String(10))
+    audit_period_start: Mapped[date | None] = mapped_column(Date)
+    audit_period_end: Mapped[date | None] = mapped_column(Date)
+
+    # Active status
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
     users: Mapped[list["User"]] = relationship(back_populates="organization")  # noqa: F821

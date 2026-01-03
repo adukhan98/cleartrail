@@ -2,14 +2,14 @@
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import String, Text
+from sqlalchemy import Boolean, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base
+from app.models.base import Base, TimestampMixin
 
 
-class Control(Base):
+class Control(Base, TimestampMixin):
     """Compliance control definition."""
 
     __tablename__ = "controls"
@@ -32,8 +32,8 @@ class Control(Base):
     # Evidence requirements
     required_evidence_types: Mapped[list] = mapped_column(JSONB, default=list)
 
-    # Mapping rules for auto-mapping
-    mapping_rules: Mapped[dict | None] = mapped_column(JSONB)
+    # Active status
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     class Config:
         """Pydantic config."""

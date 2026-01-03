@@ -39,17 +39,17 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column('email', sa.String(255), nullable=False, unique=True),
         sa.Column('name', sa.String(255), nullable=False),
-        sa.Column('hashed_password', sa.String(255), nullable=True),
+        sa.Column('password_hash', sa.String(255), nullable=True),
         sa.Column('org_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('organizations.id', ondelete='SET NULL'), nullable=True),
         sa.Column('role', sa.String(50), nullable=False, default='member'),
-        sa.Column('external_auth_id', sa.String(255), nullable=True),
+        sa.Column('external_id', sa.String(255), nullable=True),
         sa.Column('is_active', sa.Boolean, nullable=False, default=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
     )
     op.create_index('ix_users_email', 'users', ['email'])
     op.create_index('ix_users_org_id', 'users', ['org_id'])
-    op.create_index('ix_users_external_auth_id', 'users', ['external_auth_id'])
+    op.create_index('ix_users_external_id', 'users', ['external_id'])
 
     # ========== Integrations ==========
     op.create_table(
@@ -61,6 +61,7 @@ def upgrade() -> None:
         sa.Column('encrypted_credentials', sa.Text, nullable=True),
         sa.Column('config', postgresql.JSONB, nullable=True),
         sa.Column('last_sync_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('last_error', sa.Text, nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
     )
@@ -91,9 +92,9 @@ def upgrade() -> None:
         sa.Column('framework', sa.String(50), nullable=False),
         sa.Column('control_id', sa.String(50), nullable=False),
         sa.Column('title', sa.String(255), nullable=False),
-        sa.Column('description', sa.Text, nullable=True),
-        sa.Column('evidence_requirements', sa.Text, nullable=True),
-        sa.Column('required_evidence_types', postgresql.ARRAY(sa.String), nullable=True),
+        sa.Column('description', sa.Text, nullable=False),
+        sa.Column('control_pack', sa.String(100), nullable=True),
+        sa.Column('required_evidence_types', postgresql.JSONB, nullable=True, default=[]),
         sa.Column('is_active', sa.Boolean, nullable=False, default=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
@@ -101,6 +102,7 @@ def upgrade() -> None:
     )
     op.create_index('ix_controls_framework', 'controls', ['framework'])
     op.create_index('ix_controls_control_id', 'controls', ['control_id'])
+    op.create_index('ix_controls_control_pack', 'controls', ['control_pack'])
 
     # ========== Evidence Artifacts ==========
     op.create_table(
@@ -227,17 +229,17 @@ def upgrade() -> None:
 
     # ========== Seed Change Management Controls ==========
     op.execute("""
-        INSERT INTO controls (id, framework, control_id, title, description, required_evidence_types, is_active, created_at, updated_at)
+        INSERT INTO controls (id, framework, control_id, title, description, control_pack, required_evidence_types, is_active, created_at, updated_at)
         VALUES 
         (gen_random_uuid(), 'soc2', 'CC7.1', 'Change Management Process', 
          'The entity implements policies and procedures to manage the initiation, development, acquisition, configuration, modification, approval, testing, and implementation of changes.',
-         ARRAY['pull_request', 'jira_issue', 'document'], true, NOW(), NOW()),
+         'change_management', '["pull_request", "jira_issue", "document"]'::jsonb, true, NOW(), NOW()),
         (gen_random_uuid(), 'soc2', 'CC7.2', 'Change Testing', 
          'The entity tests changes before implementation to verify that they function as intended.',
-         ARRAY['pull_request', 'code_review'], true, NOW(), NOW()),
+         'change_management', '["pull_request", "code_review"]'::jsonb, true, NOW(), NOW()),
         (gen_random_uuid(), 'soc2', 'CC7.3', 'Change Approval', 
          'Changes are authorized before implementation and the authorization is documented.',
-         ARRAY['code_review', 'jira_issue'], true, NOW(), NOW())
+         'change_management', '["code_review", "jira_issue"]'::jsonb, true, NOW(), NOW())
     """)
 
 

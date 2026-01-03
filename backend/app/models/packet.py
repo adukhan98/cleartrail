@@ -41,6 +41,7 @@ class EvidencePacket(Base, TimestampMixin):
 
     # Packet metadata
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
     status: Mapped[PacketStatus] = mapped_column(
         Enum(PacketStatus),
         default=PacketStatus.DRAFT,
@@ -72,7 +73,7 @@ class EvidencePacket(Base, TimestampMixin):
     )
 
 
-class PacketItem(Base):
+class PacketItem(Base, TimestampMixin):
     """Evidence packet item (artifact reference)."""
 
     __tablename__ = "packet_items"

@@ -61,8 +61,8 @@ class Integration(Base, TimestampMixin):
         default=IntegrationStatus.DISCONNECTED,
     )
 
-    # Encrypted OAuth credentials (encrypted at rest)
-    encrypted_credentials: Mapped[bytes | None] = mapped_column()
+    # Encrypted OAuth credentials (encrypted at rest, stored as base64 string)
+    encrypted_credentials: Mapped[str | None] = mapped_column(Text)
 
     # Integration-specific configuration (repos to sync, projects, folders)
     config: Mapped[dict | None] = mapped_column(JSONB)
@@ -76,7 +76,7 @@ class Integration(Base, TimestampMixin):
     sync_jobs: Mapped[list["SyncJob"]] = relationship(back_populates="integration")
 
 
-class SyncJob(Base):
+class SyncJob(Base, TimestampMixin):
     """Evidence sync job model."""
 
     __tablename__ = "sync_jobs"

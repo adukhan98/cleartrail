@@ -37,7 +37,7 @@ class AuditLog(Base):
     )
 
     # Event details
-    occurred_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         server_default=func.now(),
@@ -51,12 +51,12 @@ class AuditLog(Base):
     entity_id: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True))
 
     # Change tracking
-    old_value: Mapped[dict | None] = mapped_column(JSONB)
+    previous_value: Mapped[dict | None] = mapped_column(JSONB)
     new_value: Mapped[dict | None] = mapped_column(JSONB)
 
     # Request context
     ip_address: Mapped[str | None] = mapped_column(String(45))  # IPv6 max length
-    user_agent: Mapped[str | None] = mapped_column(Text)
+    user_agent: Mapped[str | None] = mapped_column(String(500))
 
     # Human-readable description
     description: Mapped[str | None] = mapped_column(Text)

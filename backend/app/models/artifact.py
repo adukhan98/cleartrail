@@ -146,7 +146,7 @@ class ControlMapping(Base, TimestampMixin):
     artifact: Mapped["EvidenceArtifact"] = relationship(back_populates="control_mappings")
 
 
-class ApprovalRecord(Base):
+class ApprovalRecord(Base, TimestampMixin):
     """Immutable approval record for audit trail."""
 
     __tablename__ = "approval_records"
